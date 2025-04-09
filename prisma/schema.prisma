@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// **Bảng User (Tài khoản người dùng cá nhân)**
+model User {
+  id         String  @id @default(uuid())
+  name       String?
+  email      String  @unique
+  password   String?
+  image      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Quan hệ với đánh giá món ăn
+  reviews    Review[] 
+  // Quan hệ với lượt thích
+  likes      Like[]
+  // Quan hệ với bình luận
+  comments   Comment[]
+}
+
+/// **Bảng Business (Tài khoản doanh nghiệp)**
+model Business {
+  id          String  @id @default(uuid())
+  name        String
+  email       String  @unique
+  password    String
+  image       String?
+  description String? @db.Text
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Doanh nghiệp có thể có nhiều món ăn
+  foods       Food[]
+}
+
+/// **Bảng Food (Món ăn)**
+model Food {
+  id          String   @id @default(uuid())
+  name        String
+  description String? @db.Text
+  price       Float
+  image       String?
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Mỗi món ăn thuộc về một doanh nghiệp
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  businessId  String
+
+  // Quan hệ với đánh giá
+  reviews     Review[]
+  // Quan hệ với lượt thích
+  likes       Like[]
+  // Quan hệ với bình luận
+  comments    Comment[]
+
+}
+
+/// **Bảng Review (Đánh giá món ăn)**
+model Review {
+  id         String  @id @default(uuid())
+  rating     Int     @default(5)
+  comment    String? @db.Text
+  createdAt  DateTime @default(now())
+
+  // Người đánh giá
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+
+  // Món ăn được đánh giá
+  food       Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  foodId     String
+}
+
+/// **Bảng Like (Lượt thích món ăn)**
+model Like {
+  id         String  @id @default(uuid())
+  createdAt  DateTime @default(now())
+
+  // Người thích món ăn
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+
+  // Món ăn được thích
+  food       Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  foodId     String
+
+  @@unique([userId, foodId]) // Mỗi người chỉ có thể thích một món ăn 1 lần
+}
+
+/// **Bảng Comment (Bình luận về món ăn)**
+model Comment {
+  id         String  @id @default(uuid())
+  content    String @db.Text
+  createdAt  DateTime @default(now())
+
+  // Người bình luận
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+
+  // Món ăn được bình luận
+  food       Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  foodId     String
+}
+
