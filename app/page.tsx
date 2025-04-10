@@ -8,6 +8,7 @@ import FoodSearchSection from "./components/FoodSearchSection";
 import FavoritesSection from "./components/FavoritesSection";
 import AccountSection from "./components/AccountSection";
 import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast"; // Import toast để hiển thị thông báo
 
 type Food = {
   id: string;
@@ -15,7 +16,11 @@ type Food = {
   description: string;
   price: number;
   image?: string;
-  business: { name: string };
+  business: { 
+    id: string;
+    name: string;
+    image: string | null; 
+  };
   likes: { userId: string }[]; // danh sách người đã thích
 };
 
@@ -41,6 +46,7 @@ export default function HomePage() {
   const [status, setStatus] = useState<"loading" | "authenticated" | "unauthenticated">("loading");
   const [activeTab, setActiveTab] = useState("home");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
   const [foods, setFoods] = useState<Food[]>([]);
   const [likedFoods, setLikedFoods] = useState<LikedFood[]>([]);
   const [selectedCity, setSelectedCity] = useState("Đà Nẵng");
@@ -54,7 +60,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchSessionAndFoods = async () => {
       try {
-        const [sessionRes, foodsRes] = await Promise.all([
+        const [sessionRes, foodsRes, ] = await Promise.all([
           fetch("/api/auth/session"),
           fetch(`/api/foods?city=${selectedCity}`),
         ]);
@@ -64,12 +70,21 @@ export default function HomePage() {
           setSession(null);
         } else {
           const sessionData = await sessionRes.json();
+          const userRes = await fetch("/api/users/me");
+          const data = await userRes.json();
           setSession(sessionData.session);
           setStatus("authenticated");
+          setUserData(data);
           
-          // Nếu đã đăng nhập, lấy danh sách món yêu thích
-          if (session?.user?.id) {
-            fetchLikedFoods();
+          // Kiểm tra nếu user có role là business thì hiển thị thông báo và đăng xuất
+          if (sessionData.session?.user?.role === "business") {
+            toast.error("Bạn đang đăng nhập bằng tài khoản doanh nghiệp. Xin hãy đăng nhập bằng tài khoản khách hàng để thực hiện các chức năng.", {
+              duration: 5000,
+            });
+            // Đăng xuất và chuyển hướng về trang đăng nhập
+            setTimeout(() => {
+              signOut({ redirect: true, callbackUrl: "/pages/login" });
+            }, 2000);
           }
         }
   
@@ -82,20 +97,10 @@ export default function HomePage() {
   
     fetchSessionAndFoods();
   }, [selectedCity]); // Reload foods khi thay đổi thành phố
-  
+
   // Fetch danh sách món đã thích
   const fetchLikedFoods = async () => {
-    try {
-      const response = await fetch("/api/users/me");
-      if (response.ok) {
-        const userData = await response.json();
-        setLikedFoods(userData.likedFoods || []);
-      } else {
-        console.error("Không thể lấy danh sách món yêu thích");
-      }
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách món yêu thích:", error);
-    }
+    setLikedFoods(userData.likedFoods)
   };
 
   // Xử lý khi bỏ thích món ăn
@@ -200,6 +205,17 @@ export default function HomePage() {
   }, []);
 
   const handleTabClick = (tab: string) => {
+    // Kiểm tra role trước khi chuyển tab
+    if (session?.user?.role === "business") {
+      toast.error("Bạn đang đăng nhập bằng tài khoản doanh nghiệp. Xin hãy đăng nhập bằng tài khoản khách hàng để thực hiện các chức năng.", {
+        duration: 5000,
+      });
+      setTimeout(() => {
+        signOut({ redirect: true, callbackUrl: "/pages/login" });
+      }, 2000);
+      return;
+    }
+    
     setActiveTab(tab);
     setMobileMenuOpen(false); // Đóng menu mobile sau khi chọn tab
     
@@ -229,12 +245,34 @@ export default function HomePage() {
   };
 
   const handleCitySelect = (city: string) => {
+    // Kiểm tra role trước khi thay đổi thành phố
+    if (session?.user?.role === "business") {
+      toast.error("Bạn đang đăng nhập bằng tài khoản doanh nghiệp. Xin hãy đăng nhập bằng tài khoản khách hàng để thực hiện các chức năng.", {
+        duration: 5000,
+      });
+      setTimeout(() => {
+        signOut({ redirect: true, callbackUrl: "/pages/login" });
+      }, 2000);
+      return;
+    }
+    
     setSelectedCity(city);
     setCityDropdownOpen(false);
     setMobileCityDropdownOpen(false);
   };
 
   const handleAccountClick = () => {
+    // Kiểm tra role trước khi chuyển đến trang tài khoản
+    if (session?.user?.role === "business") {
+      toast.error("Bạn đang đăng nhập bằng tài khoản doanh nghiệp. Xin hãy đăng nhập bằng tài khoản khách hàng để thực hiện các chức năng.", {
+        duration: 5000,
+      });
+      setTimeout(() => {
+        signOut({ redirect: true, callbackUrl: "/pages/login" });
+      }, 2000);
+      return;
+    }
+    
     setDropdownOpen(false);
     router.push("/pages/account");
   };
@@ -254,8 +292,33 @@ export default function HomePage() {
     setMobileMenuOpen(false);
   };
 
+  // Render loading state
   if (status === "loading") {
     return <div className="text-center p-8">Đang kiểm tra phiên đăng nhập...</div>;
+  }
+
+  // Kiểm tra nếu là tài khoản doanh nghiệp thì hiển thị thông báo
+  if (status === "authenticated" && session?.user?.role === "business") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-orange-50 p-4">
+        <Toaster position="top-center" />
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+          <div className="text-6xl mb-5">🏪</div>
+          <h2 className="text-2xl font-semibold text-amber-800 mb-4">
+            Tài khoản doanh nghiệp
+          </h2>
+          <p className="text-gray-700 mb-6">
+            Bạn đang đăng nhập bằng tài khoản doanh nghiệp. Xin hãy đăng nhập bằng tài khoản khách hàng để thực hiện các chức năng.
+          </p>
+          <button
+            className="w-full bg-yellow-400 text-amber-900 px-6 py-3 rounded-lg font-semibold shadow hover:bg-yellow-300 transition-all"
+            onClick={handleSignOut}
+          >
+            Đăng xuất
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -341,7 +404,7 @@ export default function HomePage() {
             <div className="relative">
               <button id="avatar-button" onClick={toggleDropdown} className="focus:outline-none">
                 <img
-                  src={session.user?.image ? `/uploads/${session.user.image}` : "/uploads/default-avatar.jpg"}
+                  src={session.user?.image ? `/uploads/${userData.image}` : "/uploads/default-avatar.jpg"}
                   alt="Avatar"
                   className="w-10 h-10 rounded-full border-2 border-white shadow-md"
                 />
@@ -455,7 +518,7 @@ export default function HomePage() {
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center space-x-3 mb-4">
                     <img
-                      src={session.user?.image ? `/uploads/${session.user.image}` : "/uploads/default-avatar.jpg"}
+                      src={session.user?.image ? `/uploads/${userData.image}` : "/uploads/default-avatar.jpg"}
                       alt="Avatar"
                       className="w-10 h-10 rounded-full border-2 border-white shadow-md"
                     />
@@ -522,7 +585,9 @@ export default function HomePage() {
               onUpdateSuccess={() => {
                 // Hàm này sẽ được gọi sau khi cập nhật thành công
                 // Cập nhật lại session nếu cần
-                // fetchSessionAndFoods();
+                // fetchSessionData();
+
+                // Phần này không cần nữa sau khi sửa đổi tham số truyền vào
               }}
             />
           )}

@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     }, { status: 404 });
   }
 
-  // Xóa password nếu tồn tại
+  // Xóa password khỏi response nếu tồn tại
   const { password, ...businessWithoutPassword } = business;
   
   return NextResponse.json({ business: businessWithoutPassword});

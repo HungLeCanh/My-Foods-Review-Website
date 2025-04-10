@@ -12,7 +12,11 @@ type Food = {
   description: string;
   price: number;
   image?: string;
-  business: { name: string };
+  business: { 
+    id: string;
+    name: string;
+    image: string | null; 
+  };
   likes: { userId: string }[]; // danh sách người đã thích
   category?: string; // thêm trường category nếu có
 };

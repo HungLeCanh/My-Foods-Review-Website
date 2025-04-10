@@ -6,11 +6,34 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-// Lấy danh sách doanh nghiệp
-export async function GET() {
-  const businesses = await prisma.business.findMany();
-  return NextResponse.json(businesses);
+// Lấy thông tin doanh nghiệp theo ID (truyền qua query string)
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  // console.log("ID doanh nghiệp được yêu cầu:", id);
+
+  if (!id) {
+    return NextResponse.json({ error: "Thiếu ID doanh nghiệp" }, { status: 400 });
+  }
+
+  const business = await prisma.business.findUnique({
+    where: { id },
+    include: { foods: true },
+  });
+
+  // console.log("Kết quả truy vấn:", business);
+
+  if (!business) {
+    return NextResponse.json({ error: "Không tìm thấy doanh nghiệp" }, { status: 404 });
+  }
+
+  // Xóa password khỏi response
+  const { password, ...businessWithoutPassword } = business;
+
+  return NextResponse.json({ business: businessWithoutPassword });
 }
+
 
 // Đăng ký tài khoản doanh nghiệp
 export async function POST(req: Request) {

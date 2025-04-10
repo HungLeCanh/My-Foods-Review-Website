@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
+import { useRouter } from "next/navigation";
 
 type Comment = { id: string; content: string; userId: string };
 type Review = { id: string; rating: number; comment: string; userId: string; foodId: string };
@@ -11,8 +12,12 @@ type Food = {
   description: string;
   price: number;
   image?: string;
-  business: { name: string };
-  category?: string; // Thêm category nếu có
+  business: {
+    id: string;
+    name: string;
+    image: string | null; 
+  };
+  category?: string;
 };
 
 export default function FoodDetailModal({
@@ -31,6 +36,8 @@ export default function FoodDetailModal({
   const [rating, setRating] = useState(0);
   const [ratingComment, setRatingComment] = useState("");
   const [averageRating, setAverageRating] = useState(0);
+  const router = useRouter();
+
 
   // Fetch dữ liệu comments và reviews khi mở modal
   useEffect(() => {
@@ -56,6 +63,10 @@ export default function FoodDetailModal({
   
 
   const handleSubmitComment = async () => {
+    if(!userId){
+      alert("Bạn không thể thực hiện thao tác này, hãy đăng nhập để thực hiện chức năng");
+      return;
+    }
     if (!newComment.trim()) return;
 
     const res = await fetch("/api/comments", {
@@ -70,6 +81,10 @@ export default function FoodDetailModal({
   };
 
   const handleSubmitReview = async () => {
+    if(!userId){
+      alert("Bạn không thể thực hiện thao tác này, hãy đăng nhập để thực hiện chức năng");
+      return;
+    }
     if (rating === 0) return;
 
     const res = await fetch("/api/reviews", {
@@ -147,10 +162,14 @@ export default function FoodDetailModal({
   
             <button
               className="bg-amber-600 text-white py-2 px-4 rounded-full hover:bg-amber-700 transition w-full"
-              onClick={() => alert("Đi tới cửa hàng")}
+              onClick={() => {
+                router.push(`/pages/business_info?id=${food.business.id}`);
+                // onClose(); // đóng modal nếu muốn
+              }}
             >
               🚪 Truy cập cửa hàng
             </button>
+
           </div>
   
           {/* Right side - Tabs and content */}
