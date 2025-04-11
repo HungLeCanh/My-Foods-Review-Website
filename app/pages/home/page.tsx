@@ -263,7 +263,7 @@ export default function HomePage() {
 
   const handleSignOut = async () => {
     setDropdownOpen(false);
-    await signOut({ redirect: true, callbackUrl: "/" });
+    await signOut({ redirect: true, callbackUrl: "/pages/home" });
   };
 
   const handleLoginClick = () => {

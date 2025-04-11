@@ -32,7 +32,7 @@ export default function LoginPage() {
       // Đợi một khoảng thời gian
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      const callbackUrl = activeTab === "business" ? "/pages/business_home" : "/";
+      const callbackUrl = activeTab === "business" ? "/pages/business_home" : "/pages/home";
 
       console.log(`Đang đăng nhập với email: ${form.email}, loại tài khoản: ${activeTab}`);
       

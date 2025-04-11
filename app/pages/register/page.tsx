@@ -45,7 +45,7 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push("/login");
+        router.push("/pages/login");
       } else {
         alert(data.error || "Đăng ký thất bại.");
       }
