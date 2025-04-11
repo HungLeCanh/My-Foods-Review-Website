@@ -54,7 +54,7 @@ export default function BusinessHome() {
         
         // Thiết lập preview image từ business data
         if (data.business?.image) {
-          setPreviewImage(`/uploads/${data.business.image}`);
+          setPreviewImage(data.business.image);
         }
         
         // Tách phần gọi API foods ra thành một hàm riêng
@@ -325,7 +325,7 @@ export default function BusinessHome() {
                 type="button"
                 onClick={() => {
                   setEditMode(false);
-                  setPreviewImage(business?.image ? `/uploads/${business.image}` : null);
+                  setPreviewImage(business?.image ? business.image : null);
                 }}
                 className="bg-gray-300 text-gray-800 py-2 px-6 rounded-md hover:bg-gray-400 transition duration-200 font-medium"
               >
@@ -353,7 +353,7 @@ export default function BusinessHome() {
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-gray-200 flex-shrink-0">
                 <Image
-                  src={business?.image ? `/uploads/${business.image}` : "/uploads/default-avatar.jpg"}
+                  src={business?.image ? business.image : "/uploads/default-avatar.jpg"}
                   alt={business?.name || 'Không có dữ liệu'}
                   width={160}
                   height={160}
@@ -459,7 +459,7 @@ export default function BusinessHome() {
               <div key={food.id} className="bg-white shadow-md rounded-lg overflow-hidden h-full flex flex-col border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="h-48 overflow-hidden relative group">
                   <Image
-                    src={food.image ? `/uploads/${food.image}` : "/uploads/default-food.jpg"}
+                    src={food.image ? food.image : "/uploads/default-food.png"}
                     alt={food.name}
                     width={400}
                     height={300}

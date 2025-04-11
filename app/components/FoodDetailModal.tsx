@@ -119,7 +119,7 @@ export default function FoodDetailModal({
           <div className="md:w-1/2 p-6 border-r">
             {/* Food image */}
             <img
-              src={`/uploads/${food.image || "default-food.jpg"}`}
+              src={food.image}
               alt={food.name}
               className="w-full h-64 object-cover rounded-xl mb-4"
             />

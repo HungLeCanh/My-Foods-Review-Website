@@ -169,7 +169,7 @@ export default function FoodSearchSection({
               className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition duration-300 flex flex-col"
             >
               <img
-                src={`/uploads/${food.image || "default-food.jpg"}`}
+                src={food.image}
                 alt={food.name}
                 className="h-40 w-full object-cover"
               />

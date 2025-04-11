@@ -261,22 +261,6 @@ export default function HomePage() {
     setMobileCityDropdownOpen(false);
   };
 
-  const handleAccountClick = () => {
-    // Kiểm tra role trước khi chuyển đến trang tài khoản
-    if (session?.user?.role === "business") {
-      toast.error("Bạn đang đăng nhập bằng tài khoản doanh nghiệp. Xin hãy đăng nhập bằng tài khoản khách hàng để thực hiện các chức năng.", {
-        duration: 5000,
-      });
-      setTimeout(() => {
-        signOut({ redirect: true, callbackUrl: "/pages/login" });
-      }, 2000);
-      return;
-    }
-    
-    setDropdownOpen(false);
-    router.push("/pages/account");
-  };
-
   const handleBusinessRegisterClick = () => {
     setDropdownOpen(false);
     router.push("/pages/business_register");
@@ -404,7 +388,7 @@ export default function HomePage() {
             <div className="relative">
               <button id="avatar-button" onClick={toggleDropdown} className="focus:outline-none">
                 <img
-                  src={session.user?.image ? `/uploads/${userData.image}` : "/uploads/default-avatar.jpg"}
+                  src={session.user?.image ? userData.image : "/uploads/default-avatar.jpg"}
                   alt="Avatar"
                   className="w-10 h-10 rounded-full border-2 border-white shadow-md"
                 />
@@ -415,12 +399,6 @@ export default function HomePage() {
                   id="user-dropdown"
                   className="absolute right-0 mt-2 w-56 bg-white text-amber-800 shadow-xl rounded-lg overflow-hidden z-40"
                 >
-                  <button
-                    className="block px-5 py-3 hover:bg-amber-100 w-full text-left text-sm"
-                    onClick={handleAccountClick}
-                  >
-                    👤 Quản lý tài khoản
-                  </button>
                   <button
                     className="block px-5 py-3 hover:bg-amber-100 w-full text-left text-sm"
                     onClick={handleBusinessRegisterClick}
@@ -518,7 +496,7 @@ export default function HomePage() {
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center space-x-3 mb-4">
                     <img
-                      src={session.user?.image ? `/uploads/${userData.image}` : "/uploads/default-avatar.jpg"}
+                      src={session.user?.image ? userData.image : "/uploads/default-avatar.jpg"}
                       alt="Avatar"
                       className="w-10 h-10 rounded-full border-2 border-white shadow-md"
                     />
@@ -526,12 +504,6 @@ export default function HomePage() {
                       {session.user?.name || "Người dùng"}
                     </span>
                   </div>
-                  <button
-                    className="block px-4 py-3 bg-amber-800 hover:bg-amber-700 text-white rounded-lg w-full text-left"
-                    onClick={handleAccountClick}
-                  >
-                    👤 Quản lý tài khoản
-                  </button>
                   <button
                     className="block px-4 py-3 bg-amber-800 hover:bg-amber-700 text-white rounded-lg w-full text-left"
                     onClick={handleBusinessRegisterClick}

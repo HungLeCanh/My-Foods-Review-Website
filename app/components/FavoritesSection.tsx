@@ -84,7 +84,7 @@ export default function FavoritesSection({ userId, likedFoods, onUnlike }: Favor
           >
             <div className="relative h-48 w-full">
               <Image
-                src={food.image ? `/uploads/${food.image}` : "/uploads/default-food.jpg"}
+                src={food.image ? food.image : "/uploads/default-food.jpg"}
                 alt={food.name}
                 fill
                 className="object-cover"
@@ -113,7 +113,7 @@ export default function FavoritesSection({ userId, likedFoods, onUnlike }: Favor
                 <div className="flex items-center">
                   <div className="w-5 h-5 rounded-full overflow-hidden mr-1">
                     <Image
-                      src={food.business.image ? `/uploads/${food.business.image}` : "/uploads/default-business.jpg"}
+                      src={food.business.image ? food.business.image : "/uploads/default-business.png"}
                       alt={food.business.name}
                       width={20}
                       height={20}

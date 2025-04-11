@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Info } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 
 export default function AddFoodForm({
   onClose,
@@ -21,6 +21,7 @@ export default function AddFoodForm({
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -69,7 +70,13 @@ export default function AddFoodForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent double submission
+    if (isSubmitting) return;
+    
     if (!validate()) return;
+
+    // Set loading state
+    setIsSubmitting(true);
 
     let imageUrl = "";
 
@@ -85,6 +92,7 @@ export default function AddFoodForm({
 
         if (!uploadRes.ok) {
           setErrors({ ...errors, image: "Lỗi khi tải ảnh lên" });
+          setIsSubmitting(false);
           return;
         }
 
@@ -92,6 +100,7 @@ export default function AddFoodForm({
         imageUrl = uploadResult.url;
       } catch (error) {
         setErrors({ ...errors, image: "Lỗi khi tải ảnh lên" });
+        setIsSubmitting(false);
         return;
       }
     }
@@ -111,14 +120,17 @@ export default function AddFoodForm({
 
       if (!response.ok) {
         alert("Thêm món thất bại");
+        setIsSubmitting(false);
         return;
       }
 
       const newFood = await response.json();
       onFoodAdded(newFood);
+      // Only close after successful submission
       onClose();
     } catch (error) {
       alert("Đã xảy ra lỗi khi thêm món mới");
+      setIsSubmitting(false);
     }
   };
 
@@ -143,6 +155,7 @@ export default function AddFoodForm({
             onChange={handleChange}
             placeholder="Nhập tên món ăn (Ví dụ: Phở bò tái)"
             className={`border ${errors.name ? 'border-red-500' : 'border-gray-300'} text-black p-3 w-full rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+            disabled={isSubmitting}
           />
           {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
         </div>
@@ -157,6 +170,7 @@ export default function AddFoodForm({
             onChange={handleChange}
             placeholder="Mô tả chi tiết về món ăn (Ví dụ: Phở bò với nước dùng đậm đà, thịt bò tái mềm)"
             className={`border ${errors.description ? 'border-red-500' : 'border-gray-300'} text-black p-3 w-full rounded-md h-24 focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+            disabled={isSubmitting}
           />
           {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
         </div>
@@ -175,6 +189,7 @@ export default function AddFoodForm({
               onChange={handleChange}
               placeholder="Nhập giá món ăn (Ví dụ: 75000)"
               className={`border ${errors.price ? 'border-red-500' : 'border-gray-300'} text-black p-3 w-full rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+              disabled={isSubmitting}
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <span className="text-gray-500">VNĐ</span>
@@ -197,6 +212,7 @@ export default function AddFoodForm({
                 accept="image/*"
                 onChange={handleFileChange}
                 className="w-full"
+                disabled={isSubmitting}
               />
             </div>
             {previewUrl && (
@@ -220,6 +236,7 @@ export default function AddFoodForm({
             value={form.category}
             onChange={handleChange}
             className={`border ${errors.category ? 'border-red-500' : 'border-gray-300'} text-black p-3 w-full rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+            disabled={isSubmitting}
           >
             <option value="">-- Chọn danh mục món ăn --</option>
             {Array.isArray(categories) && categories.map((name) => (
@@ -236,14 +253,23 @@ export default function AddFoodForm({
             type="button"
             onClick={onClose}
             className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors font-medium"
+            disabled={isSubmitting}
           >
             Hủy
           </button>
           <button
             type="submit"
-            className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors font-medium"
+            disabled={isSubmitting}
+            className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors font-medium flex items-center justify-center min-w-24"
           >
-            Thêm món
+            {isSubmitting ? (
+              <>
+                <Loader2 size={18} className="mr-2 animate-spin" />
+                Đang thêm...
+              </>
+            ) : (
+              "Thêm món"
+            )}
           </button>
         </div>
       </form>

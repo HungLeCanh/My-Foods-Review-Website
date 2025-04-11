@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { writeFile, unlink } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  secure: true,
+}); 
 
 // Upload ảnh
 export async function POST(req: Request) {
@@ -12,21 +14,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Không có tệp nào được gửi" }, { status: 400 });
   }
 
-  // Định dạng tên file duy nhất
-  const fileName = `${Date.now()}-${file.name.replace(/\s/g, "_")}`;
-  const filePath = join(process.cwd(), "public/uploads", fileName);
-  const fileUrl = fileName; // Đường dẫn để lưu vào DB
-
-  // Đọc dữ liệu file
+  const timestamp = Date.now();
+  const originalName = file.name.replace(/\s/g, "_").split(".")[0];
+  const fileExt = file.name.split(".").pop();
+  const publicId = `${timestamp}-${originalName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  // Ghi file vào thư mục public/uploads
-  await writeFile(filePath, buffer);
+  try {
+    const result = await new Promise<any>((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          public_id: publicId,
+          folder: "my_project",
+          overwrite: true,
+          resource_type: "image",
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(buffer);
+    });
 
-  return NextResponse.json({ url: fileUrl });
+    return NextResponse.json({ url: result.secure_url });
+  } catch (error) {
+    console.error("Lỗi khi upload ảnh:", error);
+    return NextResponse.json({ error: "Không thể upload ảnh" }, { status: 500 });
+  }
 }
 
-// Xóa ảnh
+// Xoá ảnh
 export async function DELETE(req: Request) {
   const { searchParams } = new URL(req.url);
   const imageUrl = searchParams.get("url");
@@ -35,15 +52,26 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Thiếu tham số 'url'" }, { status: 400 });
   }
 
-  const filePath = join(process.cwd(), "public/uploads", imageUrl);
+  const getPublicIdFromUrl = (url: string): string | null => {
+    try {
+      // Lấy đường dẫn sau domain
+      const urlPath = new URL(url).pathname;
+      // Tìm phần sau /upload/ và trước dấu chấm cuối cùng
+      const matches = urlPath.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
+      return matches ? matches[1] : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const publicId = getPublicIdFromUrl(imageUrl);
+
+  if (!publicId) {
+    return NextResponse.json({ error: "Không thể phân tích public_id" }, { status: 400 });
+  }
 
   try {
-    if (!existsSync(filePath)) {
-      return NextResponse.json({ error: "Ảnh không tồn tại" }, { status: 404 });
-    }
-
-    await unlink(filePath);
-
+    await cloudinary.uploader.destroy(publicId);
     return NextResponse.json({ message: "Xóa ảnh thành công" });
   } catch (error) {
     console.error("Lỗi khi xóa ảnh:", error);

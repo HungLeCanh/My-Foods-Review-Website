@@ -263,7 +263,7 @@ export default function AccountSection({ session,  onUpdateSuccess }: UserAccoun
                 <div className="relative mb-4 md:mb-0">
                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-amber-200 shadow-md bg-amber-50">
                     <img
-                      src={previewImage || (userData.image ? `/uploads/${userData.image}` : "/uploads/default-avatar.jpg")}
+                      src={previewImage || (userData.image ? userData.image : "/uploads/default-avatar.jpg")}
                       alt="Ảnh đại diện"
                       className="w-full h-full object-cover"
                     />
@@ -353,7 +353,7 @@ export default function AccountSection({ session,  onUpdateSuccess }: UserAccoun
                 <div className="md:mr-8 mb-6 md:mb-0 flex justify-center md:justify-start">
                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-amber-200 shadow-md">
                     <img
-                      src={userData.image ? `/uploads/${userData.image}` : "/uploads/default-avatar.jpg"}
+                      src={userData.image ? userData.image : "/uploads/default-avatar.jpg"}
                       alt="Ảnh đại diện"
                       className="w-full h-full object-cover"
                     />
@@ -405,7 +405,7 @@ export default function AccountSection({ session,  onUpdateSuccess }: UserAccoun
               <div key={food.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="h-40 overflow-hidden relative">
                   <img
-                    src={food.image ? `/uploads/${food.image}` : "/uploads/default-food.jpg"}
+                    src={food.image ? food.image : "/uploads/default-food.jpg"}
                     alt={food.name}
                     className="w-full h-full object-cover"
                   />

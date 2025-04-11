@@ -63,7 +63,7 @@ export default function BusinessInfoPage() {
           <div className="h-64 md:h-80 lg:h-96 w-full relative">
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-transparent z-10"></div>
             <img
-              src={`/uploads/${business.image}`}
+              src={business.image}
               alt={business.name}
               className="w-full h-full object-cover"
             />
@@ -146,7 +146,7 @@ export default function BusinessInfoPage() {
                 <div className="relative">
                   {food.image ? (
                     <img
-                      src={`/uploads/${food.image}`}
+                      src={food.image}
                       alt={food.name}
                       className="w-full h-48 object-cover"
                     />
