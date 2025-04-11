@@ -41,9 +41,8 @@ export default function FoodSearchSection({
   const categories = ["Tất cả", "Món ngọt", "Món chay", "Món mặn", "Món cay", "Món chua"];
 
   const handleToggleLike = async (foodId: string) => {
-    if(role === "business"){
-      // Thông báo không thể thực hiện thao tác khi đang dùng tài khoản role=business
-      alert("Bạn không thể thực hiện thao tác này bằng tài khoản doanh nghiệp. Vui lòng sử dụng tài khoản người dùng.");
+    if(!userId){
+      alert("Bạn không thể thực hiện thao tác này hãy thử đăng nhập.");
       return;
     }
     const food = foods.find((f) => f.id === foodId);
