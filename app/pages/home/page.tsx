@@ -10,19 +10,35 @@ import AccountSection from "../../components/AccountSection";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast"; // Import toast để hiển thị thông báo
 
-type Food = {
+// type Food = {
+//   id: string;
+//   name: string;
+//   description: string;
+//   price: number;
+//   image?: string;
+//   business: { 
+//     id: string;
+//     name: string;
+//     image: string | null; 
+//   };
+//   likes: { userId: string }[]; // danh sách người đã thích
+//   category: string;
+// };
+
+type fixedFood = {
   id: string;
   name: string;
   description: string;
   price: number;
   image?: string;
-  business: { 
+  business: {
     id: string;
     name: string;
-    image: string | null; 
+    image: string | null;
   };
-  likes: { userId: string }[]; // danh sách người đã thích
-};
+  likes: { userId: string }[];
+  category: string[]; // dùng để lọc món theo danh mục
+}
 
 type LikedFood = {
   id: string;
@@ -47,7 +63,7 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState("home");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
-  const [foods, setFoods] = useState<Food[]>([]);
+  const [foods, setFoods] = useState<fixedFood[]>([]);
   const [likedFoods, setLikedFoods] = useState<LikedFood[]>([]);
   const [selectedCity, setSelectedCity] = useState("Đà Nẵng");
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
@@ -89,7 +105,13 @@ export default function HomePage() {
         }
   
         const foodsData = await foodsRes.json();
-        setFoods(foodsData);
+        const transformedFoods = foodsData.map((food: { category: string; }) => ({
+          ...food,
+          category: typeof food.category === "string"
+            ? food.category.split(",").map(c => c.trim())
+            : food.category
+        }));
+        setFoods(transformedFoods);
       } catch (error) {
         console.error("Lỗi khi fetch session hoặc foods:", error);
       }

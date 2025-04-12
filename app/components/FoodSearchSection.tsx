@@ -6,38 +6,37 @@ import { FaRandom } from "react-icons/fa";
 import { IoChevronForward, IoChevronBack } from "react-icons/io5";
 import FoodDetailModal from "./FoodDetailModal";
 
-type Food = {
+type fixedFood = {
   id: string;
   name: string;
   description: string;
   price: number;
   image?: string;
-  business: { 
+  business: {
     id: string;
     name: string;
-    image: string | null; 
+    image: string | null;
   };
   likes: { userId: string }[];
-  category?: string;
-};
+  category: string[]; // dùng để lọc món theo danh mục
+}
 
 export default function FoodSearchSection({
-    userId,
-    foods,
-    setFoods,
-  }: {
-    userId: string;
-    foods: Food[];
-    setFoods: React.Dispatch<React.SetStateAction<Food[]>>;
-  }) {
+  userId,
+  foods,
+  setFoods,
+}: {
+  userId: string;
+  foods: fixedFood[];
+  setFoods: React.Dispatch<React.SetStateAction<fixedFood[]>>;
+}) {
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFood, setSelectedFood] = useState<Food | null>(null);
+  const [selectedFood, setSelectedFood] = useState<fixedFood | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showCategories, setShowCategories] = useState(false);
 
-  
-  // Fix: Correctly type the ref
+  // Correctly type the ref
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   
   const categories = [
@@ -180,7 +179,6 @@ export default function FoodSearchSection({
     });
   };
 
-  // Fix: Make sure we're correctly typing our parameters
   const scroll = (direction: 'left' | 'right') => {
     if (categoryScrollRef.current) {
       const scrollAmount = 300;
@@ -192,17 +190,15 @@ export default function FoodSearchSection({
   };
 
   const filteredFoods = foods.filter((food) => {
+    // Lọc theo từ khóa tìm kiếm
     const matchesSearch = 
       food.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       food.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
       food.business.name.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // If no categories are selected, show all foods
-    const matchesCategory = selectedCategories.length === 0 || (
-      food.category &&
-      selectedCategories.some((cat) => food.category?.includes(cat))
-    );
-    
+    // Lọc theo danh mục đã chọn - hiển thị món ăn nếu nó có ít nhất một danh mục trong số danh mục được chọn
+    const matchesCategory = selectedCategories.length === 0 || 
+      selectedCategories.some(selectedCat => food.category.includes(selectedCat));
     
     return matchesSearch && matchesCategory;
   });
@@ -232,19 +228,11 @@ export default function FoodSearchSection({
           <span>Đổi mới</span>
         </button>
       </div>
-      <div className="flex justify-end mb-2">
-        <button
-          onClick={() => setShowCategories(!showCategories)}
-          className="text-sm text-orange-600 hover:text-orange-800 underline"
-        >
-          {showCategories ? "Ẩn danh mục ▲" : "Hiện danh mục ▼"}
-        </button>
-      </div>
-
-      {/* Categories section with horizontal scroll */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-medium text-amber-800">Danh mục món ăn</h3>
+      
+      {/* Categories header and toggle button on the same row */}
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-lg font-medium text-amber-800">Danh mục món ăn</h3>
+        <div className="flex items-center gap-4">
           {selectedCategories.length > 0 && (
             <button 
               onClick={clearAllCategories}
@@ -253,7 +241,17 @@ export default function FoodSearchSection({
               Xóa tất cả ({selectedCategories.length})
             </button>
           )}
+          <button
+            onClick={() => setShowCategories(!showCategories)}
+            className="text-sm text-orange-600 hover:text-orange-800 underline"
+          >
+            {showCategories ? "Ẩn danh mục ▲" : "Hiện danh mục ▼"}
+          </button>
         </div>
+      </div>
+
+      {/* Categories selection with horizontal scroll */}
+      <div className="mb-8">
         {showCategories && (
           <div className="relative">
             <button 
@@ -299,7 +297,6 @@ export default function FoodSearchSection({
           </div>
         )}
       </div>
-      
 
       {/* Food grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -327,11 +324,23 @@ export default function FoodSearchSection({
                   </button>
                 </div>
                 <p className="text-sm text-gray-500 mt-1 truncate">{food.business.name}</p>
-                {food.category && (
-                  <span className="mt-2 inline-block bg-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full">
-                    {food.category}
-                  </span>
+                
+                {/* Hiển thị danh mục - tối đa 2 danh mục + badge "+n" nếu có nhiều hơn */}
+                {food.category && food.category.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {food.category.slice(0, 2).map((cat, index) => (
+                      <span key={index} className="inline-block bg-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full">
+                        {cat}
+                      </span>
+                    ))}
+                    {food.category.length > 2 && (
+                      <span className="inline-block bg-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full">
+                        +{food.category.length - 2}
+                      </span>
+                    )}
+                  </div>
                 )}
+                
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-orange-600 font-bold">
                     {food.price.toLocaleString()}đ

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 type Comment = { id: string; content: string; userId: string };
 type Review = { id: string; rating: number; comment: string; userId: string; foodId: string };
-type Food = {
+type fixedFood = {
   id: string;
   name: string;
   description: string;
@@ -17,7 +17,7 @@ type Food = {
     name: string;
     image: string | null; 
   };
-  category?: string;
+  category: string[];
 };
 
 export default function FoodDetailModal({
@@ -25,7 +25,7 @@ export default function FoodDetailModal({
   onClose,
   userId,
 }: {
-  food: Food;
+  food: fixedFood;
   userId: string;
   onClose: () => void;
 }) {
@@ -59,7 +59,7 @@ export default function FoodDetailModal({
     };
   
     fetchData();
-  }, [food.id]);
+  }, []);
   
 
   const handleSubmitComment = async () => {
