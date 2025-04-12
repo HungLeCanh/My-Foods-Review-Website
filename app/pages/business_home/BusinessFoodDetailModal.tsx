@@ -132,7 +132,7 @@ export default function BusinessFoodDetailModal({
       }
 
       // Update food data with API
-      const res = await fetch(`/api/foods/${food.id}`, {
+      const res = await fetch(`/api/foods`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
