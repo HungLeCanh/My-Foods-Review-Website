@@ -3,12 +3,23 @@
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Business, Food } from "@prisma/client";
+import { Business } from "@prisma/client";
 import AddFoodForm from "./AddFoodForm";
+import BusinessFoodDetailModal from "./BusinessFoodDetailModal";
 import { signOut } from "next-auth/react";
 import { Camera } from "lucide-react";
 
 const categories = ["Món ngọt", "Món chay", "Món mặn", "Món cay", "Món chua"];
+
+type Food = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image?: string;
+  category?: string;
+  businessId : string;
+};
 
 export default function BusinessHome() {
   const [business, setBusiness] = useState<Business | null>(null);
@@ -22,6 +33,8 @@ export default function BusinessHome() {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const isMounted = useRef(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFood, setSelectedFood] = useState<Food | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -474,8 +487,14 @@ export default function BusinessHome() {
                   <p className="text-gray-500 mt-2 flex-1 text-sm">{food.description}</p>
                   <div className="mt-4 flex justify-between items-center">
                     <p className="text-red-500 font-bold text-lg">{food.price.toLocaleString('vi-VN')} VNĐ</p>
-                    <button className="bg-blue-500 text-white py-1 px-3 rounded-md hover:bg-blue-600 transition duration-200 text-sm flex items-center">
-                       Chi tiết
+                    <button 
+                      onClick={() => {
+                        setSelectedFood(food);
+                        setIsModalOpen(true);
+                      }}
+                      className="bg-blue-500 text-white py-1 px-3 rounded-md hover:bg-blue-600 transition duration-200 text-sm flex items-center"
+                    >
+                      Chi tiết
                     </button>
                   </div>
                 </div>
@@ -484,6 +503,12 @@ export default function BusinessHome() {
           </div>
         )}
       </div>
+        {isModalOpen && selectedFood && (
+          <BusinessFoodDetailModal
+            food={selectedFood}
+            onClose={() => setIsModalOpen(false)}
+          />
+        )}
     </div>
   );  
 }

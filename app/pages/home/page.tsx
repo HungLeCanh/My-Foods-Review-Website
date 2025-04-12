@@ -520,7 +520,6 @@ export default function HomePage() {
           {activeTab === "home" && (
             <FoodSearchSection
               userId={session?.user?.id || ""}
-              role={session?.user?.role || ""}
               foods={foods}
               setFoods={setFoods}
             />

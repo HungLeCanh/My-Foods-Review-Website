@@ -23,12 +23,10 @@ type Food = {
 
 export default function FoodSearchSection({
     userId,
-    role,
     foods,
     setFoods,
   }: {
     userId: string;
-    role: string
     foods: Food[];
     setFoods: React.Dispatch<React.SetStateAction<Food[]>>;
   }) {
@@ -98,7 +96,7 @@ export default function FoodSearchSection({
   };
 
   const filteredFoods = foods.filter((food) => {
-    const matchesSearch = food.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = food.name.toLowerCase().includes(searchTerm.toLowerCase()) || food.description.toLowerCase().includes(searchTerm.toLowerCase()) || food.business.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "Tất cả" || food.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
