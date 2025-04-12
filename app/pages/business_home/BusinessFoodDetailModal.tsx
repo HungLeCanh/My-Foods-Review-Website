@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { useRouter } from "next/navigation";
-import { Camera } from "lucide-react";
+import { Camera, Info } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 type Comment = { id: string; content: string; userId: string };
@@ -15,11 +15,78 @@ type Food = {
   price: number;
   image?: string;
   category?: string;
-  businessId : string;
+  businessId: string;
 };
 
-const categories = ["Món ngọt", "Món chay", "Món mặn", "Món cay", "Món chua"];
+const categories = [
+  // I. Theo hương vị / đặc tính
+  "Món ngọt",
+  "Món mặn",
+  "Món cay",
+  "Món chua",
+  "Món béo",
+  "Món nhạt / thanh vị",
+  "Món đậm đà",
+  "Món lên men",
 
+  // II. Theo chế độ ăn uống
+  "Món chay",
+  "Món mặn (có thịt/cá)",
+  "Món thuần chay (vegan)",
+  "Món không gluten",
+  "Món ít đường",
+  "Món low-carb",
+  "Món dành cho người ăn kiêng",
+  "Món eat clean",
+
+  // III. Theo cách chế biến
+  "Món luộc",
+  "Món hấp",
+  "Món nướng",
+  "Món chiên",
+  "Món xào",
+  "Món kho",
+  "Món trộn / gỏi",
+  "Món sống (sashimi, salad tươi, v.v.)",
+  "Món hầm / tiềm",
+  "Món lên men (kimchi, dưa cải, v.v.)",
+
+  // IV. Theo khu vực / phong cách ẩm thực
+  "Món Việt",
+  "Món Hàn",
+  "Món Nhật",
+  "Món Trung",
+  "Món Thái",
+  "Món Âu",
+  "Món Mỹ",
+  "Món Ấn",
+  "Món Địa Trung Hải",
+  "Món đường phố",
+
+  // V. Theo thời điểm dùng món
+  "Món sáng",
+  "Món trưa",
+  "Món chiều",
+  "Món tối",
+  "Món ăn vặt",
+  "Món khai vị",
+  "Món chính",
+  "Món tráng miệng",
+  "Đồ nhắm / ăn kèm rượu",
+  "Món dành cho tiệc / lễ",
+
+  // VI. Với thức uống
+  "Nước ép",
+  "Sinh tố",
+  "Trà",
+  "Cà phê",
+  "Đồ uống đá xay",
+  "Sữa / sữa hạt",
+  "Thức uống có cồn (cocktail, bia, rượu)",
+  "Thức uống detox",
+  "Thức uống nóng",
+  "Thức uống lạnh"
+];
 
 export default function BusinessFoodDetailModal({
   food,
@@ -36,7 +103,11 @@ export default function BusinessFoodDetailModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
+
+  // Quản lý các danh mục đã chọn
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   // Food data state for editing
   const [editedFood, setEditedFood] = useState<Food>({
@@ -48,6 +119,14 @@ export default function BusinessFoodDetailModal({
     category: food.category,
     businessId: food.businessId
   });
+
+  // Split category string into array when component mounts
+  useEffect(() => {
+    if (food.category) {
+      const categoryArray = food.category.split(", ").filter(cat => cat.trim());
+      setSelectedCategories(categoryArray);
+    }
+  }, [food.category]);
 
   // Fetch data for comments and reviews when modal opens
   useEffect(() => {
@@ -84,6 +163,11 @@ export default function BusinessFoodDetailModal({
       setPreviewImage(reader.result as string);
     };
     reader.readAsDataURL(file);
+
+    // Clear any error for image field
+    if (errors.image) {
+      setErrors({ ...errors, image: "" });
+    }
   };
 
   // Upload image to Cloudinary
@@ -115,8 +199,25 @@ export default function BusinessFoodDetailModal({
     }
   };
 
+  // Validate form before saving
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!editedFood.name.trim()) newErrors.name = "Vui lòng nhập tên món";
+    if (!editedFood.description.trim()) newErrors.description = "Vui lòng nhập mô tả";
+    if (!editedFood.price) newErrors.price = "Vui lòng nhập giá";
+    else if (editedFood.price <= 0) newErrors.price = "Giá phải lớn hơn 0";
+    if (selectedCategories.length === 0)
+      newErrors.category = "Vui lòng chọn ít nhất một danh mục";
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Save food data
   const handleSave = async () => {
+    if (!validate()) return;
+
     try {
       setIsSubmitting(true);
       let imageUrl = editedFood.image;
@@ -131,6 +232,9 @@ export default function BusinessFoodDetailModal({
         imageUrl = await uploadImage(selectedFile);
       }
 
+      // Join selected categories into a comma-separated string
+      const categoryString = selectedCategories.join(", ");
+
       // Update food data with API
       const res = await fetch(`/api/foods`, {
         method: 'PUT',
@@ -138,6 +242,7 @@ export default function BusinessFoodDetailModal({
         body: JSON.stringify({
           ...editedFood,
           image: imageUrl,
+          category: categoryString,
         }),
       });
 
@@ -147,6 +252,10 @@ export default function BusinessFoodDetailModal({
 
       // Update local state with new data
       const updatedFood = await res.json();
+      setEditedFood({
+        ...updatedFood,
+        category: categoryString
+      });
       
       // Exit edit mode and show success message
       setIsEditing(false);
@@ -156,14 +265,40 @@ export default function BusinessFoodDetailModal({
       // Reset file state
       setSelectedFile(null);
       setPreviewImage(null);
-      
-      // Could refresh the page or update local state here
-      // router.refresh(); // if using Next.js App Router
 
     } catch (error) {
       setIsSubmitting(false);
       toast.error('Có lỗi xảy ra khi cập nhật: ' + (error as Error).message);
     }
+  };
+
+  // Reset form to original values when canceling edit
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedFood({
+      id: food.id,
+      name: food.name,
+      description: food.description,
+      price: food.price,
+      image: food.image,
+      category: food.category,
+      businessId: food.businessId
+    });
+    
+    // Reset categories to original state
+    if (food.category) {
+      const categoryArray = food.category.split(", ").filter(cat => cat.trim());
+      setSelectedCategories(categoryArray);
+    } else {
+      setSelectedCategories([]);
+    }
+    
+    // Clear file selection
+    setSelectedFile(null);
+    setPreviewImage(null);
+    
+    // Clear errors
+    setErrors({});
   };
 
   return (
@@ -209,50 +344,86 @@ export default function BusinessFoodDetailModal({
               {isEditing ? (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên món ăn</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên món ăn <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       value={editedFood.name}
-                      onChange={(e) => setEditedFood({...editedFood, name: e.target.value})}
-                      className="text-black w-full p-2 border border-gray-300 rounded-md"
+                      onChange={(e) => {
+                        setEditedFood({...editedFood, name: e.target.value});
+                        if (errors.name) setErrors({...errors, name: ""});
+                      }}
+                      className={`text-black w-full p-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md`}
                     />
+                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Giá (VNĐ)</label>
-                    <input
-                      type="number"
-                      value={editedFood.price}
-                      onChange={(e) => setEditedFood({...editedFood, price: Number(e.target.value)})}
-                      className="text-black w-full p-2 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
-                    <select
-                        value={editedFood.category || ''}
-                        onChange={(e) => setEditedFood({...editedFood, category: e.target.value})}
-                        className="text-black w-full p-2 border border-gray-300 rounded-md bg-white"
-                    >
-                        <option value="" disabled>-- Chọn danh mục --</option>
-                        {categories.map((cat) => (
-                        <option key={cat} value={cat}>
-                            {cat}
-                        </option>
-                        ))}
-                    </select>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Giá (VNĐ) <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={editedFood.price}
+                        onChange={(e) => {
+                          setEditedFood({...editedFood, price: Number(e.target.value)});
+                          if (errors.price) setErrors({...errors, price: ""});
+                        }}
+                        className={`text-black w-full p-2 border ${errors.price ? 'border-red-500' : 'border-gray-300'} rounded-md`}
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <span className="text-gray-500">VNĐ</span>
+                      </div>
                     </div>
-
+                    {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
+                    <p className="text-gray-500 text-xs flex items-center mt-1">
+                      <Info size={12} className="mr-1" /> Nhập giá không cần dấu phẩy hoặc chấm
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Danh mục <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pb-2">
+                      {categories.map((name) => {
+                        const selected = selectedCategories.includes(name);
+                        return (
+                          <button
+                            key={name}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategories(prev =>
+                                selected ? prev.filter(c => c !== name) : [...prev, name]
+                              );
+                              if (errors.category) {
+                                setErrors({ ...errors, category: "" });
+                              }
+                            }}
+                            className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors
+                              ${selected
+                                ? "bg-green-600 text-white border-green-600"
+                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"}
+                            `}
+                          >
+                            {name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
+                  </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả <span className="text-red-500">*</span></label>
                     <textarea
                       value={editedFood.description}
-                      onChange={(e) => setEditedFood({...editedFood, description: e.target.value})}
-                      className="text-black w-full p-2 border border-gray-300 rounded-md"
+                      onChange={(e) => {
+                        setEditedFood({...editedFood, description: e.target.value});
+                        if (errors.description) setErrors({...errors, description: ""});
+                      }}
+                      className={`text-black w-full p-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-md`}
                       rows={4}
                     />
+                    {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
                   </div>
                 </div>
               ) : (
@@ -278,8 +449,18 @@ export default function BusinessFoodDetailModal({
                     )}
                   </div>
                   
-                  {editedFood.category && (
-                    <p className="text-gray-600 mb-2">📂 Danh mục: {editedFood.category}</p>
+                  {/* Show categories */}
+                  {selectedCategories.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-gray-600 mb-1">📂 Danh mục:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedCategories.map((cat) => (
+                          <span key={cat} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   )}
                   
                   {/* Mô tả món ăn */}
@@ -306,20 +487,7 @@ export default function BusinessFoodDetailModal({
                 </button>
                 <button
                   className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-300 transition"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedFood({
-                      id: food.id,
-                      name: food.name,
-                      description: food.description,
-                      price: food.price,
-                      image: food.image,
-                      category: food.category,
-                      businessId: food.businessId
-                    });
-                    setSelectedFile(null);
-                    setPreviewImage(null);
-                  }}
+                  onClick={handleCancelEdit}
                   disabled={isSubmitting}
                 >
                   Hủy

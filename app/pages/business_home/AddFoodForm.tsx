@@ -19,6 +19,7 @@ export default function AddFoodForm({
   });
 
   const [file, setFile] = useState<File | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +61,8 @@ export default function AddFoodForm({
     if (!form.description.trim()) newErrors.description = "Vui lòng nhập mô tả";
     if (!form.price) newErrors.price = "Vui lòng nhập giá";
     else if (parseFloat(form.price) <= 0) newErrors.price = "Giá phải lớn hơn 0";
-    if (!form.category) newErrors.category = "Vui lòng chọn danh mục";
+    if (selectedCategories.length === 0)
+      newErrors.category = "Vui lòng chọn ít nhất một danh mục";    
     if (!file) newErrors.image = "Vui lòng tải lên hình ảnh món ăn";
     
     setErrors(newErrors);
@@ -106,6 +108,7 @@ export default function AddFoodForm({
     }
 
     try {
+      const categoryString = selectedCategories.join(", ");
       const response = await fetch("/api/foods", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -114,7 +117,7 @@ export default function AddFoodForm({
           description: form.description,
           price: parseFloat(form.price),
           image: imageUrl,
-          category: form.category,
+          category: categoryString,
         }),
       });
 
@@ -231,22 +234,42 @@ export default function AddFoodForm({
           <label className="block text-sm font-medium text-gray-700">
             Danh mục <span className="text-red-500">*</span>
           </label>
-          <select
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-            className={`border ${errors.category ? 'border-red-500' : 'border-gray-300'} text-black p-3 w-full rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-            disabled={isSubmitting}
-          >
-            <option value="">-- Chọn danh mục món ăn --</option>
-            {Array.isArray(categories) && categories.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-          {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
+          
+          <div className="flex flex-wrap gap-2">
+            {Array.isArray(categories) && categories.map((name) => {
+              const selected = selectedCategories.includes(name);
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategories(prev =>
+                      selected ? prev.filter(c => c !== name) : [...prev, name]
+                    );
+
+                    // Clear error when selecting category
+                    if (errors.category) {
+                      setErrors({ ...errors, category: "" });
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors
+                    ${selected
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"}
+                  `}
+                  disabled={isSubmitting}
+                >
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+
+          {errors.category && (
+            <p className="text-red-500 text-xs mt-1">{errors.category}</p>
+          )}
         </div>
+
 
         <div className="pt-4 flex gap-3 justify-end">
           <button

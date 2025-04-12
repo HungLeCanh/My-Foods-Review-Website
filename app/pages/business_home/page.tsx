@@ -9,7 +9,76 @@ import BusinessFoodDetailModal from "./BusinessFoodDetailModal";
 import { signOut } from "next-auth/react";
 import { Camera } from "lucide-react";
 
-const categories = ["Món ngọt", "Món chay", "Món mặn", "Món cay", "Món chua"];
+const categories = [
+  // I. Theo hương vị / đặc tính
+  "Món ngọt",
+  "Món mặn",
+  "Món cay",
+  "Món chua",
+  "Món béo",
+  "Món nhạt / thanh vị",
+  "Món đậm đà",
+  "Món lên men",
+
+  // II. Theo chế độ ăn uống
+  "Món chay",
+  "Món mặn (có thịt/cá)",
+  "Món thuần chay (vegan)",
+  "Món không gluten",
+  "Món ít đường",
+  "Món low-carb",
+  "Món dành cho người ăn kiêng",
+  "Món eat clean",
+
+  // III. Theo cách chế biến
+  "Món luộc",
+  "Món hấp",
+  "Món nướng",
+  "Món chiên",
+  "Món xào",
+  "Món kho",
+  "Món trộn / gỏi",
+  "Món sống (sashimi, salad tươi, v.v.)",
+  "Món hầm / tiềm",
+  "Món lên men (kimchi, dưa cải, v.v.)",
+
+  // IV. Theo khu vực / phong cách ẩm thực
+  "Món Việt",
+  "Món Hàn",
+  "Món Nhật",
+  "Món Trung",
+  "Món Thái",
+  "Món Âu",
+  "Món Mỹ",
+  "Món Ấn",
+  "Món Địa Trung Hải",
+  "Món đường phố",
+
+  // V. Theo thời điểm dùng món
+  "Món sáng",
+  "Món trưa",
+  "Món chiều",
+  "Món tối",
+  "Món ăn vặt",
+  "Món khai vị",
+  "Món chính",
+  "Món tráng miệng",
+  "Đồ nhắm / ăn kèm rượu",
+  "Món dành cho tiệc / lễ",
+
+  // VI. Với thức uống
+  "Nước ép",
+  "Sinh tố",
+  "Trà",
+  "Cà phê",
+  "Đồ uống đá xay",
+  "Sữa / sữa hạt",
+  "Thức uống có cồn (cocktail, bia, rượu)",
+  "Thức uống detox",
+  "Thức uống nóng",
+  "Thức uống lạnh"
+];
+
 
 type Food = {
   id: string;
@@ -412,38 +481,41 @@ export default function BusinessHome() {
       )}
   
       <div className="bg-white shadow-lg rounded-lg p-6">
-        <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Danh sách món ăn</h2>
-          
-          {/* Category Filter */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-2xl font-bold text-gray-800">Danh sách món ăn</h2>
+          </div>
           {foods.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setCategoryFilter(null)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  categoryFilter === null
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Tất cả
-              </button>
-              {categories.map(category => (
+            <div className="w-full overflow-x-auto">
+              <div className="flex gap-2 flex-nowrap min-w-max pb-2">
                 <button
-                  key={category}
-                  onClick={() => setCategoryFilter(category)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    categoryFilter === category
+                  onClick={() => setCategoryFilter(null)}
+                  className={`px-4 py-1 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                    categoryFilter === null
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  {category}
+                  Tất cả
                 </button>
-              ))}
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setCategoryFilter(category)}
+                    className={`px-4 py-1 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                      categoryFilter === category
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
+
         
         {foods.length === 0 ? (
           <div className="text-center py-10 bg-gray-50 rounded-lg">
