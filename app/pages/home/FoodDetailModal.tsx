@@ -163,7 +163,7 @@ export default function FoodDetailModal({
             <button
               className="bg-amber-600 text-white py-2 px-4 rounded-full hover:bg-amber-700 transition w-full"
               onClick={() => {
-                router.push(`/pages/business_info?id=${food.business.id}`);
+                window.open(`/pages/business_info?id=${food.business.id}`, "_blank");
                 // onClose(); // đóng modal nếu muốn
               }}
             >

@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { HiMenu, HiX } from "react-icons/hi";
-import FoodSearchSection from "../../components/FoodSearchSection";
-import FavoritesSection from "../../components/FavoritesSection";
-import AccountSection from "../../components/AccountSection";
+import FoodSearchSection from "./FoodSearchSection";
+import FavoritesSection from "./FavoritesSection";
+import AccountSection from "./AccountSection";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast"; // Import toast để hiển thị thông báo
 
@@ -58,19 +58,28 @@ type LikedFood = {
 
 export default function HomePage() {
   const router = useRouter();
+  // Auth
   const [session, setSession] = useState<any>(null);
   const [status, setStatus] = useState<"loading" | "authenticated" | "unauthenticated">("loading");
-  const [activeTab, setActiveTab] = useState("home");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+
+  // City
+  const [selectedCity, setSelectedCity] = useState("Đà Nẵng");
+  const cities = ["Đà Nẵng", "Hà Nội", "Hồ Chí Minh", "Huế"];
+
+  // Data
   const [foods, setFoods] = useState<fixedFood[]>([]);
   const [likedFoods, setLikedFoods] = useState<LikedFood[]>([]);
-  const [selectedCity, setSelectedCity] = useState("Đà Nẵng");
+  const [userData, setUserData] = useState<any>(null);
+
+  // UI
+  const [activeTab, setActiveTab] = useState("home");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [mobileCityDropdownOpen, setMobileCityDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  const cities = ["Đà Nẵng", "Hà Nội", "Hồ Chí Minh", "Huế"];
+
+
+
 
   // Lấy session từ custom API và foods theo city
   useEffect(() => {
@@ -120,6 +129,89 @@ export default function HomePage() {
     fetchSessionAndFoods();
   }, [selectedCity]); // Reload foods khi thay đổi thành phố
 
+    // Dropdown logic cho user avatar
+    useEffect(() => {
+      const dropdownRef = { current: document.getElementById("user-dropdown") };
+      const avatarButtonRef = { current: document.getElementById("avatar-button") };
+  
+      const handleClickOutside = (event: Event) => {
+        if (
+          dropdownOpen &&
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target as Node) &&
+          avatarButtonRef.current &&
+          !avatarButtonRef.current.contains(event.target as Node)
+        ) {
+          setDropdownOpen(false);
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [dropdownOpen]);
+  
+    // Dropdown logic cho city selector
+    useEffect(() => {
+      const cityDropdownRef = { current: document.getElementById("city-dropdown") };
+      const cityButtonRef = { current: document.getElementById("city-button") };
+  
+      const handleClickOutside = (event: Event) => {
+        if (
+          cityDropdownOpen &&
+          cityDropdownRef.current &&
+          !cityDropdownRef.current.contains(event.target as Node) &&
+          cityButtonRef.current &&
+          !cityButtonRef.current.contains(event.target as Node)
+        ) {
+          setCityDropdownOpen(false);
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [cityDropdownOpen]);
+    
+    // Dropdown logic cho city selector mobile
+    useEffect(() => {
+      const mobileCityDropdownRef = { current: document.getElementById("mobile-city-dropdown") };
+      const mobileCityButtonRef = { current: document.getElementById("mobile-city-button") };
+  
+      const handleClickOutside = (event: Event) => {
+        if (
+          mobileCityDropdownOpen &&
+          mobileCityDropdownRef.current &&
+          !mobileCityDropdownRef.current.contains(event.target as Node) &&
+          mobileCityButtonRef.current &&
+          !mobileCityButtonRef.current.contains(event.target as Node)
+        ) {
+          setMobileCityDropdownOpen(false);
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [mobileCityDropdownOpen]);
+  
+    // Đóng mobile menu khi thay đổi kích thước màn hình
+    useEffect(() => {
+      const handleResize = () => {
+        if (window.innerWidth >= 1024) {
+          setMobileMenuOpen(false);
+        }
+      };
+  
+      window.addEventListener('resize', handleResize);
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }, []);  
+
   // Fetch danh sách món đã thích
   const fetchLikedFoods = async () => {
     setLikedFoods(userData.likedFoods)
@@ -143,88 +235,6 @@ export default function HomePage() {
     );
   };
 
-  // Dropdown logic cho user avatar
-  useEffect(() => {
-    const dropdownRef = { current: document.getElementById("user-dropdown") };
-    const avatarButtonRef = { current: document.getElementById("avatar-button") };
-
-    const handleClickOutside = (event: Event) => {
-      if (
-        dropdownOpen &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        avatarButtonRef.current &&
-        !avatarButtonRef.current.contains(event.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownOpen]);
-
-  // Dropdown logic cho city selector
-  useEffect(() => {
-    const cityDropdownRef = { current: document.getElementById("city-dropdown") };
-    const cityButtonRef = { current: document.getElementById("city-button") };
-
-    const handleClickOutside = (event: Event) => {
-      if (
-        cityDropdownOpen &&
-        cityDropdownRef.current &&
-        !cityDropdownRef.current.contains(event.target as Node) &&
-        cityButtonRef.current &&
-        !cityButtonRef.current.contains(event.target as Node)
-      ) {
-        setCityDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [cityDropdownOpen]);
-  
-  // Dropdown logic cho city selector mobile
-  useEffect(() => {
-    const mobileCityDropdownRef = { current: document.getElementById("mobile-city-dropdown") };
-    const mobileCityButtonRef = { current: document.getElementById("mobile-city-button") };
-
-    const handleClickOutside = (event: Event) => {
-      if (
-        mobileCityDropdownOpen &&
-        mobileCityDropdownRef.current &&
-        !mobileCityDropdownRef.current.contains(event.target as Node) &&
-        mobileCityButtonRef.current &&
-        !mobileCityButtonRef.current.contains(event.target as Node)
-      ) {
-        setMobileCityDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [mobileCityDropdownOpen]);
-
-  // Đóng mobile menu khi thay đổi kích thước màn hình
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
 
   const handleTabClick = (tab: string) => {
     // Kiểm tra role trước khi chuyển tab
@@ -293,7 +303,7 @@ export default function HomePage() {
     setMobileMenuOpen(false);
   };
 
-  // Render loading state
+  // Loading state
   if (status === "loading") {
     return <div className="text-center p-8">Đang kiểm tra phiên đăng nhập...</div>;
   }
