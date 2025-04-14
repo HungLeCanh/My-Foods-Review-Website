@@ -36,6 +36,7 @@ export default function FoodSearchSection({
   const [selectedFood, setSelectedFood] = useState<fixedFood | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showCategories, setShowCategories] = useState(false);
+  const [activeGroupIndex, setActiveGroupIndex] = useState(0);
 
   // Correctly type the ref
   const categoryScrollRef = useRef<HTMLDivElement>(null);
@@ -120,6 +121,14 @@ export default function FoodSearchSection({
     }
   };
 
+  const changeGroup = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      setActiveGroupIndex(prev => (prev === 0 ? categoryGroups.length - 1 : prev - 1));
+    } else {
+      setActiveGroupIndex(prev => (prev === categoryGroups.length - 1 ? 0 : prev + 1));
+    }
+  };
+
   const filteredFoods = foods.filter((food) => {
     // Lọc theo từ khóa tìm kiếm
     const matchesSearch = 
@@ -182,53 +191,70 @@ export default function FoodSearchSection({
         </div>
       </div>
 
-      {/* Categories selection with horizontal scroll */}
-      <div className="mb-8">
-        {showCategories && (
+      {/* Improved Categories UI with tabbed interface */}
+      {showCategories && (
+        <div className="mb-6 bg-amber-50 rounded-xl p-3 shadow-sm">
+          {/* Group navigation tabs */}
+          <div className="flex overflow-x-auto scrollbar-hide mb-3">
+            {categoryGroups.map((group, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveGroupIndex(index)}
+                className={`px-3 py-2 text-sm font-medium whitespace-nowrap mx-1 rounded-lg transition-colors
+                  ${activeGroupIndex === index 
+                    ? 'bg-amber-500 text-white' 
+                    : 'bg-white text-amber-800 hover:bg-amber-100'}
+                `}
+              >
+                {group.title}
+              </button>
+            ))}
+          </div>
+          
+          {/* Active category group */}
           <div className="relative">
             <button 
-              onClick={() => scroll('left')}
+              onClick={() => changeGroup('prev')}
               className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 rounded-full p-1 shadow-md text-amber-800 hover:bg-amber-100"
             >
               <IoChevronBack size={24} />
             </button>
             
-            <div 
-              ref={categoryScrollRef}
-              className="flex flex-wrap gap-2 overflow-x-auto py-2 px-8 scrollbar-hide"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {categoryGroups.map((group, groupIndex) => (
-                <div key={groupIndex} className="flex flex-col min-w-fit mr-4">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">{group.title}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {group.items.map((category, index) => (
-                      <button
-                        key={`${groupIndex}-${index}`}
-                        onClick={() => toggleCategorySelection(category)}
-                        className={`text-sm px-3 py-1.5 rounded-full border transition-colors
-                          ${selectedCategories.includes(category) 
-                            ? 'bg-orange-500 text-white border-orange-500' 
-                            : 'bg-white text-gray-700 border-gray-300 hover:bg-orange-50'}
-                        `}
-                      >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <div className="flex flex-wrap justify-center gap-2 px-10 py-3">
+              {categoryGroups[activeGroupIndex].items.map((category, index) => (
+                <button
+                  key={index}
+                  onClick={() => toggleCategorySelection(category)}
+                  className={`text-sm px-3 py-1.5 rounded-full border transition-colors
+                    ${selectedCategories.includes(category) 
+                      ? 'bg-orange-500 text-white border-orange-500' 
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-orange-50'}
+                  `}
+                >
+                  {category}
+                </button>
               ))}
             </div>
             
             <button 
-              onClick={() => scroll('right')}
+              onClick={() => changeGroup('next')}
               className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 rounded-full p-1 shadow-md text-amber-800 hover:bg-amber-100"
             >
               <IoChevronForward size={24} />
             </button>
           </div>
-        )}
-      </div>
+
+          {/* Group indicator */}
+          <div className="flex justify-center mt-2 gap-1">
+            {categoryGroups.map((_, index) => (
+              <span 
+                key={index} 
+                className={`inline-block w-2 h-2 rounded-full ${index === activeGroupIndex ? 'bg-amber-500' : 'bg-amber-200'}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Food grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

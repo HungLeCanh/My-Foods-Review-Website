@@ -34,9 +34,7 @@ export async function GET(req: NextRequest) {
           updatedAt: true,
         },
       },
-      reviews: true,
       likes: true,
-      comments: true,
     },
   });
 
