@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# My Foods Review Website
+
+A web application that allows users to discover and search for dishes in their area, and enables F&B businesses to create business accounts and post their menus to promote their offerings.
+
+## Features
+
+- **User Functionality**: Search for dishes by name, category, or location.
+- **Business Accounts**: F&B businesses can register, create business profiles, and upload their menus.
+- **Authentication**: Implemented using NextAuth with Google OAuth support.
+- **Image Hosting**: Images are stored and served via Cloudinary.
+
+## Tech Stack
+
+- **Frontend**: Next.js 13 (App Router), TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: MySQL (hosted on Aiven.io)
+- **Authentication**: NextAuth.js with Google OAuth
+- **Image Hosting**: Cloudinary
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js (v18 or later)
+- npm or yarn
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   git clone https://github.com/HungLeCanh/My-Foods-Review-Website.git
+   cd My-Foods-Review-Website
+   ```
+
 
-## Learn More
+2. Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Set up environment variables:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   Create a `.env.local` file in the root directory and add the following:
 
-## Deploy on Vercel
+   ```env
+   DATABASE_URL=your_mysql_database_url
+   NEXTAUTH_SECRET=your_nextauth_secret
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   CLOUDINARY_URL=your_cloudinary_url
+   ```
+
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   Replace the placeholder values with your actual credentials.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. Run database migrations:
+
+   ```bash
+   npx prisma migrate dev
+   ```
+
+
+5. Start the development server:
+
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+## Environment Variables
+
+| Variable             | Description                             |
+|----------------------|-----------------------------------------|
+| `DATABASE_URL`       | MySQL database connection string        |
+| `NEXTAUTH_SECRET`    | Secret key for NextAuth                 |
+| `GOOGLE_CLIENT_ID`   | Google OAuth client ID                  |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret            |
+| `CLOUDINARY_URL`     | Cloudinary URL for image storage        |
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+Feel free to customize this `README.md` file further to suit your project's specific needs. 
