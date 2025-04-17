@@ -81,53 +81,73 @@ export default function HomePage() {
 
 
 
-  // Lấy session từ custom API và foods theo city
-  useEffect(() => {
-    const fetchSessionAndFoods = async () => {
-      try {
-        const [sessionRes, foodsRes, ] = await Promise.all([
-          fetch("/api/auth/session"),
-          fetch(`/api/foods?city=${selectedCity}`),
-        ]);
-  
-        if (sessionRes.status === 401) {
-          setStatus("unauthenticated");
-          setSession(null);
-        } else {
-          const sessionData = await sessionRes.json();
-          const userRes = await fetch("/api/users/me");
-          const data = await userRes.json();
-          setSession(sessionData.session);
-          setStatus("authenticated");
-          setUserData(data);
+    // Tách riêng fetch session và user data
+    useEffect(() => {
+      const fetchSessionAndUserData = async () => {
+        try {
+          const sessionRes = await fetch("/api/auth/session");
           
-          // Kiểm tra nếu user có role là business thì hiển thị thông báo và đăng xuất
-          if (sessionData.session?.user?.role === "business") {
-            toast.error("Bạn đang đăng nhập bằng tài khoản doanh nghiệp. Xin hãy đăng nhập bằng tài khoản khách hàng để thực hiện các chức năng.", {
-              duration: 5000,
-            });
-            // Đăng xuất và chuyển hướng về trang đăng nhập
-            setTimeout(() => {
-              signOut({ redirect: true, callbackUrl: "/pages/login" });
-            }, 2000);
+          if (sessionRes.status === 401) {
+            setStatus("unauthenticated");
+            setSession(null);
+          } else {
+            const sessionData = await sessionRes.json();
+            setSession(sessionData.session);
+            setStatus("authenticated");
+            
+            // Fetch user data nếu authenticated
+            try {
+              const userRes = await fetch("/api/users/me");
+              const userData = await userRes.json();
+              setUserData(userData);
+              
+              // Cập nhật liked foods từ userData
+              setLikedFoods(userData.likedFoods);
+              
+              // Kiểm tra role business và xử lý
+              if (sessionData.session?.user?.role === "business") {
+                toast.error("Bạn đang đăng nhập bằng tài khoản doanh nghiệp. Xin hãy đăng nhập bằng tài khoản khách hàng để thực hiện các chức năng.", {
+                  duration: 5000,
+                });
+                setTimeout(() => {
+                  signOut({ redirect: true, callbackUrl: "/pages/login" });
+                }, 2000);
+              }
+            } catch (userError) {
+              console.error("Lỗi khi fetch user data:", userError);
+            }
           }
+        } catch (error) {
+          console.error("Lỗi khi fetch session:", error);
+          setStatus("unauthenticated");
         }
-  
-        const foodsData = await foodsRes.json();
-        const transformedFoods = foodsData.map((food: { category: string; }) => ({
-          ...food,
-          category: typeof food.category === "string"
-            ? food.category.split(",").map(c => c.trim())
-            : food.category
-        }));
-        setFoods(transformedFoods);
-      } catch (error) {
-        console.error("Lỗi khi fetch session hoặc foods:", error);
-      }
-    };
-  
-    fetchSessionAndFoods();
-  }, [selectedCity]); // Reload foods khi thay đổi thành phố
+      };
+
+      fetchSessionAndUserData();
+    }, []); // Chỉ chạy một lần khi mount component
+
+    // Tách riêng fetch foods dựa trên selectedCity
+    useEffect(() => {
+      const fetchFoods = async () => {
+        try {
+          const foodsRes = await fetch(`/api/foods?city=${selectedCity}`);
+          const foodsData = await foodsRes.json();
+          
+          const transformedFoods = foodsData.map((food: { category: string; }) => ({
+            ...food,
+            category: typeof food.category === "string"
+              ? food.category.split(",").map(c => c.trim())
+              : food.category
+          }));
+          
+          setFoods(transformedFoods);
+        } catch (error) {
+          console.error("Lỗi khi fetch foods:", error);
+        }
+      };
+
+      fetchFoods();
+    }, [selectedCity]); // Chỉ reload foods khi thay đổi thành phố
 
     // Dropdown logic cho user avatar
     useEffect(() => {
@@ -305,7 +325,32 @@ export default function HomePage() {
 
   // Loading state
   if (status === "loading") {
-    return <div className="text-center p-8">Đang kiểm tra phiên đăng nhập...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center p-10 space-y-4 text-blue-600 animate-pulse">
+        <svg
+          className="w-12 h-12 text-blue-500 animate-spin"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8H4z"
+          ></path>
+        </svg>
+        <p className="text-lg font-medium">Đang kiểm tra phiên đăng nhập...</p>
+        <p className="text-sm text-gray-500">Vui lòng chờ một chút nhé 😊</p>
+      </div>
+    );
   }
 
   // Kiểm tra nếu là tài khoản doanh nghiệp thì hiển thị thông báo
@@ -415,7 +460,7 @@ export default function HomePage() {
             <div className="relative">
               <button id="avatar-button" onClick={toggleDropdown} className="focus:outline-none">
                 <img
-                  src={session.user?.image ? userData.image : "/uploads/default-avatar.jpg"}
+                  src={session.user?.image ? userData?.image : "/uploads/default-avatar.jpg"}
                   alt="Avatar"
                   className="w-10 h-10 rounded-full border-2 border-white shadow-md"
                 />
@@ -517,7 +562,7 @@ export default function HomePage() {
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center space-x-3 mb-4">
                     <img
-                      src={session.user?.image ? userData.image : "/uploads/default-avatar.jpg"}
+                      src={session.user?.image ? userData?.image : "/uploads/default-avatar.jpg"}
                       alt="Avatar"
                       className="w-10 h-10 rounded-full border-2 border-white shadow-md"
                     />

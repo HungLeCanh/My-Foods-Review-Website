@@ -36,30 +36,38 @@ export default function FoodDetailModal({
   const [rating, setRating] = useState(0);
   const [ratingComment, setRatingComment] = useState("");
   const [averageRating, setAverageRating] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
 
   // Fetch dữ liệu comments và reviews khi mở modal
   useEffect(() => {
     const fetchData = async () => {
-      const commentRes = await fetch(`/api/comments?foodId=${food.id}`);
-      const reviewRes = await fetch(`/api/reviews?foodId=${food.id}`);
-  
-      const commentsData = await commentRes.json();
-      const reviewsData = await reviewRes.json();
-  
-      setComments(commentsData);
-      setReviews(reviewsData);
-      
-      // Tính điểm đánh giá trung bình
-      if (reviewsData.length > 0) {
-        const totalRating = reviewsData.reduce((sum: number, review: Review) => sum + review.rating, 0);
-        setAverageRating(totalRating / reviewsData.length);
+      setIsLoading(true);
+      try {
+        const commentRes = await fetch(`/api/comments?foodId=${food.id}`);
+        const reviewRes = await fetch(`/api/reviews?foodId=${food.id}`);
+    
+        const commentsData = await commentRes.json();
+        const reviewsData = await reviewRes.json();
+    
+        setComments(commentsData);
+        setReviews(reviewsData);
+        
+        // Tính điểm đánh giá trung bình
+        if (reviewsData.length > 0) {
+          const totalRating = reviewsData.reduce((sum: number, review: Review) => sum + review.rating, 0);
+          setAverageRating(totalRating / reviewsData.length);
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
   
     fetchData();
-  }, []);
+  }, [food.id]);
   
 
   const handleSubmitComment = async () => {
@@ -128,7 +136,9 @@ export default function FoodDetailModal({
             <div className="mb-4 p-3 bg-orange-50 rounded-lg">
               <div className="flex justify-between items-center mb-2">
                 <p className="text-orange-600 font-bold text-xl">{food.price.toLocaleString()}đ</p>
-                {averageRating > 0 && (
+                {isLoading ? (
+                  <div className="text-gray-500 text-sm">Đang tải đánh giá...</div>
+                ) : averageRating > 0 ? (
                   <div className="flex items-center">
                     <span className="text-yellow-500 font-medium mr-1">{averageRating.toFixed(1)}</span>
                     <div className="flex">
@@ -144,6 +154,8 @@ export default function FoodDetailModal({
                     </div>
                     <span className="text-gray-500 text-sm ml-1">({reviews.length})</span>
                   </div>
+                ) : (
+                  <div className="text-gray-500 text-sm">Chưa có đánh giá</div>
                 )}
               </div>
               
@@ -167,7 +179,7 @@ export default function FoodDetailModal({
                 // onClose(); // đóng modal nếu muốn
               }}
             >
-              🚪 Truy cập cửa hàng
+              Truy cập cửa hàng
             </button>
 
           </div>
@@ -182,7 +194,7 @@ export default function FoodDetailModal({
                 }`}
                 onClick={() => setActiveTab("comments")}
               >
-                💬 Bình luận ({comments.length})
+                💬 Bình luận ({isLoading ? "..." : comments.length})
               </button>
               <button
                 className={`py-2 px-4 font-medium ${
@@ -190,7 +202,7 @@ export default function FoodDetailModal({
                 }`}
                 onClick={() => setActiveTab("reviews")}
               >
-                ⭐ Đánh giá ({reviews.length})
+                ⭐ Đánh giá ({isLoading ? "..." : reviews.length})
               </button>
             </div>
   
@@ -217,13 +229,20 @@ export default function FoodDetailModal({
                   
                   {/* Comments List */}
                   <div className="space-y-3">
-                    {comments.map((cmt) => (
-                      <div key={cmt.id} className="border p-3 rounded-lg bg-gray-50">
-                        <p className="font-semibold text-sm text-gray-700">👤 Người dùng: {cmt.userId}</p>
-                        <p className="mt-1 text-gray-800">{cmt.content}</p>
+                    {isLoading ? (
+                      <div className="text-center p-4 text-gray-500">
+                        <p>Đang tải bình luận...</p>
                       </div>
-                    ))}
-                    {comments.length === 0 && <p className="text-gray-500 text-sm">Chưa có bình luận nào.</p>}
+                    ) : comments.length > 0 ? (
+                      comments.map((cmt) => (
+                        <div key={cmt.id} className="border p-3 rounded-lg bg-gray-50">
+                          <p className="font-semibold text-sm text-gray-700">👤 Người dùng: {cmt.userId}</p>
+                          <p className="mt-1 text-gray-800">{cmt.content}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm">Chưa có bình luận nào.</p>
+                    )}
                   </div>
                 </>
               ) : (
@@ -258,21 +277,28 @@ export default function FoodDetailModal({
                   
                   {/* Reviews List */}
                   <div className="space-y-3">
-                    {reviews.map((rev) => (
-                      <div key={rev.id} className="border p-3 rounded-lg bg-gray-50">
-                        <p className="font-semibold text-sm text-gray-700">👤 Người dùng: {rev.userId}</p>
-                        <div className="flex space-x-1 mb-1">
-                          {[...Array(rev.rating)].map((_, i) => (
-                            <AiFillStar key={i} className="text-yellow-400 text-sm" />
-                          ))}
-                          {[...Array(5 - rev.rating)].map((_, i) => (
-                            <AiOutlineStar key={i} className="text-gray-300 text-sm" />
-                          ))}
-                        </div>
-                        <p className="text-gray-800">{rev.comment}</p>
+                    {isLoading ? (
+                      <div className="text-center p-4 text-gray-500">
+                        <p>Đang tải đánh giá...</p>
                       </div>
-                    ))}
-                    {reviews.length === 0 && <p className="text-gray-500 text-sm">Chưa có đánh giá nào.</p>}
+                    ) : reviews.length > 0 ? (
+                      reviews.map((rev) => (
+                        <div key={rev.id} className="border p-3 rounded-lg bg-gray-50">
+                          <p className="font-semibold text-sm text-gray-700">👤 Người dùng: {rev.userId}</p>
+                          <div className="flex space-x-1 mb-1">
+                            {[...Array(rev.rating)].map((_, i) => (
+                              <AiFillStar key={i} className="text-yellow-400 text-sm" />
+                            ))}
+                            {[...Array(5 - rev.rating)].map((_, i) => (
+                              <AiOutlineStar key={i} className="text-gray-300 text-sm" />
+                            ))}
+                          </div>
+                          <p className="text-gray-800">{rev.comment}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm">Chưa có đánh giá nào.</p>
+                    )}
                   </div>
                 </>
               )}

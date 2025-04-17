@@ -111,16 +111,6 @@ export default function FoodSearchSection({
     });
   };
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (categoryScrollRef.current) {
-      const scrollAmount = 300;
-      categoryScrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   const changeGroup = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {
       setActiveGroupIndex(prev => (prev === 0 ? categoryGroups.length - 1 : prev - 1));
@@ -152,7 +142,7 @@ export default function FoodSearchSection({
         <div className="flex-1 min-w-[250px]">
           <input
             type="text"
-            placeholder="🔍 Tìm món ăn..."
+            placeholder="🔍 Tìm món ăn, mô tả, danh mục, cửa hàng..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="text-black w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 shadow-sm"
