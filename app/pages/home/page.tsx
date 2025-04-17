@@ -323,6 +323,11 @@ export default function HomePage() {
     setMobileMenuOpen(false);
   };
 
+  const handleLogoClick = () => {
+    router.push("/");
+    setMobileMenuOpen(false);
+  };
+
   // Loading state
   if (status === "loading") {
     return (
@@ -384,7 +389,7 @@ export default function HomePage() {
       {/* Fixed Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-30 bg-amber-700 text-white px-4 md:px-6 py-3 flex justify-between items-center shadow-md">
         {/* Logo section sau này thiết kế logo sau */}
-        <div className="flex items-center">
+        <div onClick={handleLogoClick} className="flex items-center">
           <span className="text-xl font-bold">🍜 FoodPin 📍</span>
         </div>
 
