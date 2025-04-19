@@ -13,7 +13,7 @@ Preview my website: https://my-foods-review-website.vercel.app/
 
 ## Tech Stack
 
-- **Frontend**: Next.js 13 (App Router), TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Prisma ORM
 - **Database**: MySQL (hosted on Aiven.io)
 - **Authentication**: NextAuth.js with Google OAuth
