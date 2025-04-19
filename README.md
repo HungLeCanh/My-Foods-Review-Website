@@ -88,8 +88,5 @@ Preview my website: https://my-foods-review-website.vercel.app/
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret            |
 | `CLOUDINARY_URL`     | Cloudinary URL for image storage        |
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
