@@ -249,7 +249,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-orange-700 text-center">
-            <p className="text-sm">&copy; {new Date().getFullYear()} FoodPin. Đã đăng ký bản quyền.</p>
+            <p className="text-sm">&copy; {new Date().getFullYear()} FoodPin. Chưa đăng ký bản quyền.</p>
           </div>
         </div>
       </footer>
