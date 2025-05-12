@@ -187,7 +187,7 @@ export default function FoodSearchSection({
         ref={sidebarRef}
         className={`fixed top-0 left-0 h-full w-3/4 bg-white z-30 overflow-y-auto shadow-xl md:hidden
                     transform transition-transform duration-1000 ease-in-out
-                    ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}`}
+                    ${showMobileSidebar ? 'translate-x-0' : 'translate-full'}`}
       >
         <div className="p-4">
           {/* Header with close button */}
