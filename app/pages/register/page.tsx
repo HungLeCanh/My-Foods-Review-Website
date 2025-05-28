@@ -59,16 +59,16 @@ export default function RegisterPage() {
   };
 
 return (
-  <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 p-4">
+  <div className="flex justify-center items-center min-h-screen bg-amber-50 p-4">
     <div className="bg-white shadow-xl rounded-2xl w-full max-w-md overflow-hidden">
       {/* Header với thương hiệu */}
-      <div className="bg-gradient-to-r from-orange-400 to-amber-500 p-6 text-center">
+      <div className="bg-orange-400 p-6 text-center">
         <div className="flex justify-center items-center mb-2">
           <span className="text-4xl mr-2" role="img" aria-label="bowl">🍜</span>
           <h1 className="text-3xl font-bold text-white">FoodPin</h1>
           <span className="text-4xl ml-2" role="img" aria-label="pin">📍</span>
         </div>
-        <p className="text-white text-opacity-90 text-sm">Tham gia cộng đồng yêu ẩm thực</p>
+        <p className="text-white/90 text-sm">Tham gia cộng đồng yêu ẩm thực</p>
       </div>
 
       <div className="p-6 sm:p-8">
@@ -268,7 +268,7 @@ return (
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-lg font-medium text-white bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full py-3 px-4 rounded-lg font-medium text-white bg-amber-600 hover:from-orange-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
@@ -317,7 +317,7 @@ return (
       </div>
 
       {/* Trang trí phía dưới */}
-      <div className="bg-gradient-to-r from-orange-400 to-amber-500 h-4" />
+      <div className="bg-amber-500 h-4" />
     </div>
   </div>
 );
