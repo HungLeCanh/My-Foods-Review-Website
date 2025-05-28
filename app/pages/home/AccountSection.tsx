@@ -428,17 +428,6 @@ export default function AccountSection({ session,  onUpdateSuccess }: UserAccoun
               </div>
             ))}
           </div>
-          
-          {userData.likedFoods.length > 3 && (
-            <div className="text-center mt-4">
-              <button
-                onClick={() => router.push("/favorites")}
-                className="text-amber-600 hover:text-amber-500 font-medium"
-              >
-                Xem tất cả {userData.likedFoods.length} món yêu thích
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>

@@ -11,7 +11,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-orange-100">
+    <div className="min-h-screen bg-orange-50">
       <Head>
         <title>FoodPin | Khám phá ẩm thực địa phương</title>
         <meta name="description" content="Tìm kiếm món ăn yêu thích và khám phá các nhà hàng địa phương" />
@@ -19,7 +19,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
-      <header className="bg-orange-700 text-white py-4 px-4 sm:px-6 shadow-md relative">
+      <header className="bg-amber-700 text-white py-4 px-4 sm:px-6 shadow-md relative">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <span className="text-xl sm:text-2xl font-bold">🍜 FoodPin 📍</span>
