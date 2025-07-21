@@ -12,5 +12,5 @@ export async function GET() {
     });
   }
 
-  return NextResponse.json({ session });
+  return NextResponse.json(session);
 }

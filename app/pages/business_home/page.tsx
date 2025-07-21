@@ -7,7 +7,7 @@ import { Business } from "@prisma/client";
 import AddFoodForm from "./AddFoodForm";
 import BusinessFoodDetailModal from "./BusinessFoodDetailModal";
 import { signOut } from "next-auth/react";
-import { Camera } from "lucide-react";
+import { Camera, Edit, Trash2 } from "lucide-react";
 import { categories } from "../../lib/constants/categories";
 
 type Food = {
@@ -109,6 +109,32 @@ export default function BusinessHome() {
       isMounted.current = false;
     };
   }, []);
+
+  // xoá món ăn
+  const deleteFood = async (foodId: string) => {
+    try {
+      if (!confirm("Bạn có chắc chắn muốn xoá món ăn này?")) return;
+      setFoods(foods.filter(food => food.id !== foodId)); // Cập nhật UI truocws khi xoá
+      const response = await fetch(`/api/foods`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: foodId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Xoá món ăn thất bại");
+      }
+
+      // Cập nhật lại danh sách món ăn sau khi xoá
+      setFoods(foods.filter(food => food.id !== foodId));
+    } catch (error) {
+      console.error("Error deleting food:", error);
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -219,6 +245,21 @@ export default function BusinessHome() {
   const filteredFoods = categoryFilter 
     ? foods.filter(food => food.category === categoryFilter)
     : foods;
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
 
   if (isLoading) {
     return (
@@ -391,7 +432,7 @@ export default function BusinessHome() {
                 <span className="mr-1">✏️</span> Chỉnh sửa thông tin
               </button>
               <button
-                onClick={() => setShowAddForm(true)}
+                onClick={() => setShowAddForm(!showAddForm)}
                 className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-200 flex items-center justify-center"
               >
                 <span className="mr-1">➕</span> Thêm món vào menu
@@ -415,8 +456,11 @@ export default function BusinessHome() {
   
       <div className="bg-white shadow-lg rounded-lg p-6">
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-3">
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-gray-800">Danh sách món ăn</h2>
+            <div className="text-sm text-gray-500">
+              Tổng cộng: {filteredFoods.length} món
+            </div>
           </div>
           {foods.length > 0 && (
             <div className="w-full overflow-x-auto">
@@ -429,21 +473,24 @@ export default function BusinessHome() {
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  Tất cả
+                  Tất cả ({foods.length})
                 </button>
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setCategoryFilter(category)}
-                    className={`px-4 py-1 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-                      categoryFilter === category
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
+                {categories.map((category) => {
+                  const count = foods.filter(food => food.category === category).length;
+                  return count > 0 ? (
+                    <button
+                      key={category}
+                      onClick={() => setCategoryFilter(category)}
+                      className={`px-4 py-1 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                        categoryFilter === category
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {category} ({count})
+                    </button>
+                  ) : null;
+                })}
               </div>
             </div>
           )}
@@ -472,39 +519,98 @@ export default function BusinessHome() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-            {filteredFoods.map((food) => (
-              <div key={food.id} className="bg-white shadow-md rounded-lg overflow-hidden h-full flex flex-col border border-gray-100 hover:shadow-lg transition-shadow">
-                <div className="h-48 overflow-hidden relative group">
-                  <Image
-                    src={food.image ? food.image : "/uploads/default-food.png"}
-                    alt={food.name}
-                    width={400}
-                    height={300}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute top-2 right-2 bg-white/90 py-1 px-2 rounded-full text-xs font-medium text-gray-700">
-                    {food.category || 'Không phân loại'}
-                  </div>
-                </div>
-                <div className="p-4 flex-1 flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-800">{food.name}</h3>
-                  <p className="text-gray-500 mt-2 flex-1 text-sm">{food.description}</p>
-                  <div className="mt-4 flex justify-between items-center">
-                    <p className="text-red-500 font-bold text-lg">{food.price.toLocaleString('vi-VN')} VNĐ</p>
-                    <button 
-                      onClick={() => {
-                        setSelectedFood(food);
-                        setIsModalOpen(true);
-                      }}
-                      className="bg-blue-500 text-white py-1 px-3 rounded-md hover:bg-blue-600 transition duration-200 text-sm flex items-center"
-                    >
-                      Chi tiết
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Hình ảnh
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tên món
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Mô tả
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Danh mục
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Giá
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ngày tạo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Thao tác
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredFoods.map((food) => (
+                  <tr key={food.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden">
+                        <Image
+                          src={food.image ? food.image : "/uploads/default-food.png"}
+                          alt={food.name}
+                          width={64}
+                          height={64}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {food.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-500 max-w-xs">
+                        {truncateText(food.description, 80)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {food.category || 'Không phân loại'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-bold text-red-600">
+                        {food.price.toLocaleString('vi-VN')} VNĐ
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {formatDate(food.createdAt)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex space-x-2">
+
+                        <button
+                          onClick={() => {
+                            setSelectedFood(food);
+                            setIsModalOpen(true);
+                          }}
+                          className="text-yellow-600 hover:text-yellow-900 transition-colors p-2 hover:bg-yellow-50 rounded-md"
+                          title="Chỉnh sửa"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => deleteFood(food.id)}
+                          className="text-red-600 hover:text-red-900 transition-colors p-2 hover:bg-red-50 rounded-md"
+                          title="Xóa"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

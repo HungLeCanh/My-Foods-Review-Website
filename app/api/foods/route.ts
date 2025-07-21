@@ -93,3 +93,35 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Không thể cập nhật món ăn" }, { status: 500 });
   }
 }
+
+// xoá món ăn
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "business") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const business = await prisma.business.findUnique({
+    where: { email: session.user.email },
+  });
+
+  if (!business) {
+    return NextResponse.json({ error: "Doanh nghiệp không tồn tại" }, { status: 404 });
+  }
+
+  const { id } = await req.json();
+
+  if (!id) {
+    return NextResponse.json({ error: "Thiếu ID của món ăn" }, { status: 400 });
+  }
+
+  try {
+    await prisma.food.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Món ăn đã được xoá thành công" }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: "Không thể xoá món ăn" }, { status: 500 });
+  }
+}

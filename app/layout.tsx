@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ConditionalSessionProvider from "./components/ConditionalSessionProvider"; // cái mới
+import AuthProvider from "./components/SessionProvider"; // Đảm bảo đúng đường dẫn
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ConditionalSessionProvider>{children}</ConditionalSessionProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
